@@ -1,18 +1,39 @@
 import keyboard
-import mouse
+from pynput.mouse import Button, Controller
 import time
+import subprocess
 
+controller = Controller()
 keys = []
+keyEnabled = False
+keyLifted = False
+keyo = False
 
 x = 0
 y = 0
 
 
+# def capsLock():
+#     import ctypes
+#     hllDll = ctypes.WinDLL("User32.dll")
+#     VK_CAPITAL = 0x14
+#     return hllDll.GetKeyState(VK_CAPITAL)
+
 def capsLock():
-    import ctypes
-    hllDll = ctypes.WinDLL("User32.dll")
-    VK_CAPITAL = 0x14
-    return hllDll.GetKeyState(VK_CAPITAL)
+    return subprocess.check_output("xset q | grep LED", shell=True)[65] == 49
+
+
+def enableProgram(enableKey):
+    global keyEnabled, keyLifted, keyo
+    if keyboard.is_pressed(enableKey) and keyLifted == False:
+        keyEnabled = not keyEnabled
+        keyLifted = True
+        keyo = True
+    elif keyboard.is_pressed(enableKey) == False and keyo and keyLifted:
+        keyLifted = False
+        keyo = False
+
+    return keyEnabled
 
 
 def setSpeed(speed, keyInput):
@@ -22,13 +43,13 @@ def setSpeed(speed, keyInput):
 
 
 def blockkeys():
-    global blocked
-    if blocked:
-        return
+    # global blocked
+    # if blocked:
+    #     return
 
     for key in keys:
         keyboard.block_key(key)
-    blocked = True
+    # blocked = True
 
 
 def unblockKeys():
@@ -79,34 +100,34 @@ def checkKey(speedReduction=5):
         x = 0
 
     if keyboard.is_pressed(keys[4]) and on:
-        mouse.press('left')
+        controller.press(Button.left)
         on = False
     elif keyboard.is_pressed(keys[4]) == False and on == False:
         on = True
-        mouse.release('left')
+        controller.release(Button.left)
 
     if keyboard.is_pressed(keys[5]) and ce:
-        mouse.press('right')
+        controller.press(Button.right)
         ce = False
     elif keyboard.is_pressed(keys[5]) == False and ce == False:
         ce = True
-        mouse.release('right')
+        controller.release(Button.right)
 
     if keyboard.is_pressed(keys[6]) and fb:
-        mouse.press('middle')
+        controller.press(Button.middle)
         fb = False
     elif keyboard.is_pressed(keys[6]) == False and fb == False:
         fb = True
-        mouse.release('middle')
+        controller.release(Button.middle)
 
     if keyboard.is_pressed(keys[7]):
-        mouse.wheel(1)
+        controller.scroll(0,1)
         if shift:
             time.sleep(0.0005)
         else:
             time.sleep(0.08)
     elif keyboard.is_pressed(keys[8]):
-        mouse.wheel(-1)
+        controller.scroll(0, -1)
         if shift:
             time.sleep(0.0005)
         else:
@@ -114,4 +135,4 @@ def checkKey(speedReduction=5):
 
 
 def move():
-    mouse.move(x, y, absolute=False, duration=0)
+    controller.move(x, y)
